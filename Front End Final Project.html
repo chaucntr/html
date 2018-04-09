@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Font End Final Project</title>
+    <style>
+        table {
+		  display: block;
+		  font-family: sans-serif;
+		  font-size: 115%;
+		  overflow: auto;
+		  width: auto;
+		  }
+		 table  th {
+			background-color: rgb(112, 196, 105);
+			color: white;
+			font-weight: normal;
+			padding: 20px 30px;
+			text-align: center;
+		  }
+		 table td {
+			background-color: rgb(238, 238, 238);
+			color: rgb(111, 111, 111);
+			padding: 20px 30px;
+			text-align:center;
+		  }
+
+		table caption {
+		  background-color:lightGreen;
+		  padding:20px;
+		  font-size: 130%;
+		}
+		.button {
+			background-color: #4CAF50; /* Green */
+			border: none;
+			color: white;
+			padding: 15px 32px;
+			text-align: center;
+			text-decoration: none;
+			display: inline-block;
+			font-size: 16px;
+		}
+		.comment-text-area {  
+		  width:75%;
+		  height: 100%;
+		}
+
+		.textinput {  
+		  width: 100%;
+		  min-height: 35px;
+		  outline: none;
+		  resize: none;
+		  border: 3px solid #f0f0f0;
+		  font-size: 28px;
+		}
+    </style>
+</head>
+<body>
+	<div class="comment-text-area" >
+      <textarea  id ="str" class="textinput" placeholder="Write a SQL Statement here"></textarea>
+    </div>
+	<br/>
+	<br/>
+	<br/>
+    <input type="button" class ="button" onclick="search()" value="Run SQL Query" />
+	<input type="button" class ="button" onclick="Clear()" value="Clear SQL Query" />
+	<br/>
+	<br/>
+	<br/>
+	<br/>
+    <div id="showData"></div>
+	
+	<div id="choose">
+	<select id = "yourChoose" onchange="react(this.id)">
+		<option value="" selected disabled hidden>Choose here</option>
+		<option value="img"> Students Records Database.jpg</option>
+		<option value="students"> Select * from Students </option>
+		<option value="results"> Select * from Results </option>
+		<option value = "course" > Select * from Courses </option>
+	</select>
+	<div id = "foo">
+	
+	</div>
+	</div>
+</body>
+<script>
+	function react(s1){
+		var s1 = document.getElementById(s1);
+		if(s1.value == "img"){
+			var elem = document.createElement("img");
+			elem.src = 'image.png';
+			document.getElementById("foo").appendChild(elem);
+		}
+		Clear();
+		if(s1.value =="students"){
+			search("select * from students");
+		}
+		if(s1.value == "results"){
+			search("select * from results");
+		}
+		if(s1.value == "course"){
+			search("select * from courses");
+		}
+	}
+	function Clear(){
+		 document.getElementById('str').value = "";
+	};
+	function search(string) {
+		var str1 = document.getElementById('str').value;
+		var queryURL  = "https://centriarest.azurewebsites.net/sql?querytext=" ;
+		if(str1==""){
+			queryURL +=  string;
+		}else{
+			queryURL += str1 ;
+		}
+		
+		var xhr = new XMLHttpRequest();
+		xhr.open('GET', queryURL, true);
+	 
+		// called when the response has arrived
+		xhr.onload = function(e) {
+			var jsonResponse = this.response;
+	 
+			// turn the response into a JavaScript object
+			var users = JSON.parse(jsonResponse);
+			CreateTableFromJSON(users);
+		}
+		// in case of error
+		xhr.onerror = function(err) {
+			console.log("Error: " + err);
+		}
+		// sends the request
+		xhr.send();
+	}
+    function CreateTableFromJSON(users) {
+
+        // EXTRACT VALUE FOR HTML HEADER. 
+        // ('StudentId', 'LastName', 'FirstName', 'City' , 'DP' and 'StartYear')
+        var col = [];
+        for (var i = 0; i < users.length; i++) {
+            for (var key in users[i]) {
+                if (col.indexOf(key) === -1) {
+                    col.push(key);
+                }
+            }
+        }
+
+        // CREATE DYNAMIC TABLE.
+        var table = document.createElement("table");
+
+        // CREATE HTML TABLE HEADER ROW USING THE EXTRACTED HEADERS ABOVE.
+
+        var tr = table.insertRow(-1);                   // TABLE ROW.
+
+        for (var i = 0; i < col.length; i++) {
+            var th = document.createElement("th");      // TABLE HEADER.
+            th.innerHTML = col[i];
+            tr.appendChild(th);
+        }
+
+        // ADD JSON DATA TO THE TABLE AS ROWS.
+        for (var i = 0; i < users.length; i++) {
+
+            tr = table.insertRow(-1);
+
+            for (var j = 0; j < col.length; j++) {
+                var tabCell = tr.insertCell(-1);
+                tabCell.innerHTML = users[i][col[j]];
+            }
+        }
+
+        // FINALLY ADD THE NEWLY CREATED TABLE WITH JSON DATA TO A CONTAINER.
+        var divContainer = document.getElementById("showData");
+        divContainer.innerHTML = "";
+        divContainer.appendChild(table);
+    }
+</script>
+</html>
